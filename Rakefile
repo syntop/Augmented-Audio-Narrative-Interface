@@ -22,8 +22,7 @@ Motion::Project::App.setup do |app|
   )
   
   app.frameworks << 'CFNetwork'
-  app.frameworks << 'CoreImage'
-  app.frameworks << 'QuartzCore'
+  app.frameworks << 'AVFoundation'
   
   # app.testflight.sdk = 'vendor/TestFlightSDK'
   # app.testflight.api_token = local_config['testflight_api_token']

@@ -3,7 +3,11 @@ class AudioPlayerViewController < UIViewController
     initOSC()
     
     self.view = UIView.alloc.initWithFrame(UIScreen.mainScreen.applicationFrame)
-    self.view.backgroundColor = UIColor.redColor
+    self.view.backgroundColor = UIColor.blackColor
+    
+    initButtons()
+    initAudioPlayer()
+    initTimeDisplay()
   end
   
   def initOSC
@@ -12,23 +16,53 @@ class AudioPlayerViewController < UIViewController
     @osc = manager.createNewOutputToAddress('10.0.1.7', atPort:12000)
   end
   
-  def map_scroll_view
-    @map_scroll_view ||= begin
-      map_scroll_view = TiledScrollView.alloc.initWithFrame([[0,0],[768,768]])
-      map_scroll_view.delegate = self
-      map_scroll_view.clipsToBounds = true
-      map_scroll_view.scrollEnabled = true
-      map_scroll_view.pagingEnabled = false
-      map_scroll_view.maximumZoomScale = 2.0
-      map_scroll_view.minimumZoomScale = 0.5
-      map_scroll_view.bounces = true
-      map_scroll_view.userInteractionEnabled = true
-      map_scroll_view.setContentSize([map_image_view.frame.size.width, map_image_view.frame.size.height])
-      map_scroll_view.backgroundColor = UIColor.whiteColor
-      map_scroll_view.setZoomScale(1.0)
-      map_scroll_view.addSubview(map_image_view)
-      map_scroll_view
+  def initAudioPlayer
+    path = NSBundle.mainBundle.pathForResource('2006_BeagleDiary_DarwinOnline_1', ofType:'mp3')
+    url = NSURL.fileURLWithPath(path)
+    error_ptr = Pointer.new(:id)
+    @player = AVAudioPlayer.alloc.initWithContentsOfURL(url, error:error_ptr)
+    unless @player
+      raise "Can't open sound file: #{error_ptr[0].description}"
     end
+    @player.prepareToPlay()
+  end
+  
+  def initButtons
+    @play_button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
+    @play_button.setTitle('>', forState:UIControlStateNormal)
+    @play_button.setTitle('||', forState:UIControlStateSelected)
+    @play_button.addTarget(self, action:'playButtonTapped', forControlEvents:UIControlEventTouchUpInside)
+    @play_button.frame = [[20, view.frame.size.width - 60], [40, 40]]
+    view.addSubview(@play_button)
+  end
+  
+  def initTimeDisplay
+    @time_display = UILabel.alloc.initWithFrame([[view.frame.size.height - 200, view.frame.size.width - 40], [180, 20]])
+    @time_display.backgroundColor = UIColor.clearColor
+    @time_display.textColor = UIColor.whiteColor
+    @time_display.textAlignment = UITextAlignmentRight
+    view.addSubview(@time_display)
+  end
+  
+  def updateTimeDisplay
+    current_min = (@player.currentTime/60).floor
+    current_sec = (@player.currentTime%60).floor
+    duration_min = (@player.duration/60).floor
+    duration_sec = (@player.duration%60).floor
+    @time_display.text = sprintf("%02d:%02d / %02d:%02d", current_min, current_sec, duration_min, duration_sec)
+  end
+  
+  def playButtonTapped
+    if @play_button.selected?
+      @player.pause()
+      if @timer
+        @timer.invalidate()
+      end
+    else
+      @player.play()
+      @timer = NSTimer.scheduledTimerWithTimeInterval(0.5, target:self, selector:'updateTimeDisplay', userInfo:nil, repeats:true)
+    end
+    @play_button.selected = !@play_button.selected?
   end
   
   def shouldAutorotateToInterfaceOrientation(orientation)
