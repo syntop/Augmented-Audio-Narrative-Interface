@@ -24,6 +24,11 @@ class AudioPlayerViewController < UIViewController
     unless @player
       raise "Can't open sound file: #{error_ptr[0].description}"
     end
+    
+    @audio_session = AVAudioSession.sharedInstance
+    err_ptr = Pointer.new(:id)
+    @audio_session.setCategory(AVAudioSessionCategoryPlayback, error:err_ptr)
+    
     @player.prepareToPlay()
   end
   
@@ -63,6 +68,8 @@ class AudioPlayerViewController < UIViewController
       @timer = NSTimer.scheduledTimerWithTimeInterval(0.5, target:self, selector:'updateTimeDisplay', userInfo:nil, repeats:true)
     end
     @play_button.selected = !@play_button.selected?
+    err_ptr = Pointer.new(:id)
+    @audio_session.setActive(@play_button.selected?, error:err_ptr)
   end
   
   def shouldAutorotateToInterfaceOrientation(orientation)
