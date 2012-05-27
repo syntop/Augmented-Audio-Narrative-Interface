@@ -28,11 +28,11 @@ class AudioPlayerViewController < UIViewController
   end
   
   def initButtons
-    @play_button = UIButton.buttonWithType(UIButtonTypeRoundedRect)
-    @play_button.setTitle('>', forState:UIControlStateNormal)
-    @play_button.setTitle('||', forState:UIControlStateSelected)
+    @play_button = UIButton.buttonWithType(UIButtonTypeCustom)
+    @play_button.setImage(UIImage.imageNamed('button-play.png'), forState:UIControlStateNormal)
+    @play_button.setImage(UIImage.imageNamed('button-pause.png'), forState:UIControlStateSelected)
     @play_button.addTarget(self, action:'playButtonTapped', forControlEvents:UIControlEventTouchUpInside)
-    @play_button.frame = [[20, view.frame.size.width - 60], [40, 40]]
+    @play_button.frame = [[0, view.frame.size.width - 68], [68,68]]
     view.addSubview(@play_button)
   end
   
